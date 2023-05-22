@@ -1,0 +1,83 @@
+<?php
+
+use Drupal\Core\Entity\ContentEntityFormInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
+use Drupal\translations_pack\Form\TranslationForm;
+use Drupal\language\Entity\ContentLanguageSettings;
+
+// workaround for bug of empty entity id when ajax used on new content form
+function translations_pack_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $form_object = $form_state->getFormObject();
+  if ( $form_object instanceof ContentEntityFormInterface 
+    && isset($form['actions']['submit'])) {
+    $form['actions']['submit']['#submit'][] = 'translations_pack_save_newid';
+  }
+  if ($form_object instanceof TranslationForm 
+    && isset($form['actions']['submit'])) {
+    // override other module changes to retain submission callback
+    $form['actions']['submit']['#value'] = 'save';
+  }
+}
+
+function translations_pack_save_newid(array $form, FormStateInterface $form_state) {
+  $entity = $form_state->getFormObject()->getEntity();
+  if ($entity->id()) {
+    $form_state->setValue('translations_pack_newid', $entity->id());
+    $form_state->setValue('translations_pack_entity', $entity);
+  }
+}
+
+function translations_pack_module_implements_alter(&$implementations, $hook) {
+  if ($hook == 'form_alter') {
+    $alter = $implementations['translations_pack'];
+    unset($implementations['translations_pack']);
+    $implementations['translations_pack'] = $alter;
+  }
+}
+
+function translations_pack_form_language_content_settings_form_alter(&$form, FormStateInterface $form_state) {
+  foreach (Element::children($form['settings']) as $entity_type) {
+    foreach (Element::children($form['settings'][$entity_type]) as $bundle) {
+      $bundle_settings = &$form['settings'][$entity_type][$bundle];
+      if (!isset($bundle_settings['translatable'])) {
+        continue;
+      }
+      $config = ContentLanguageSettings::loadByEntityTypeBundle($entity_type, $bundle);
+      if (!$config) {
+        continue;
+      }
+      $enabled = $config->getThirdPartySetting('translations_pack', 'pack_enabled');
+      $selector = 
+        ":input[name=\"settings[{$entity_type}][{$bundle}][translatable]\"]";
+
+      $bundle_settings['settings']['translations_pack'] = [
+        '#type' => 'checkbox',
+        '#title' => 'Translations pack',
+        '#default_value' => $enabled,
+        '#states' => [
+          'visible' => [
+            $selector => [
+              'checked' => TRUE,
+            ],
+          ],
+        ],
+      ];
+    }
+  }
+  $form['#submit'][] = 'translations_pack_language_content_settings_submit';
+}
+
+function translations_pack_language_content_settings_submit(array $form, FormStateInterface $form_state) {
+  foreach ($form_state->getValue('settings') as $entity_type => $bundles) {
+    foreach ($bundles as $bundle => $values) {
+      $config = ContentLanguageSettings::loadByEntityTypeBundle($entity_type, $bundle);
+      if (!isset($values['translatable'])) {
+        continue;
+      }
+      $enabled = $values['translatable'] && $values['settings']['translations_pack'];
+      $config->setThirdPartySetting('translations_pack', 'pack_enabled', $enabled);
+      $config->save();
+    }
+  }
+}

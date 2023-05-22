@@ -1,7 +1,10 @@
 tabs:
   js:
     js/tabs.js: {}
+    js/ajax.js: {}
   css:
     component:
       css/tabs.css: {}
-
+  dependencies:
+    - core/drupal
+    - core/once

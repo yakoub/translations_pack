@@ -1,0 +1,17 @@
+<?php
+use Drupal\Core\Entity\ContentEntityInterface;
+
+function translations_moderation_pack_translations_pack_alter
+  (&$build, ContentEntityInterface $entity) 
+{
+  if (!isset($build['original']['moderation_state'])) {
+    return;
+  }
+  $build['original']['moderation_state']['check_sync'] = [
+    '#type' => 'checkbox',
+    '#title' => 'Synchronize',
+    '#attributes' => ['class' => ['sync-states']],
+    '#checked' => TRUE,
+  ];
+  $build['#attached']['library'][] = 'translations_moderation_pack/sync_states';
+}

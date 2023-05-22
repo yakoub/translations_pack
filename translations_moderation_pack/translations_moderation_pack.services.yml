@@ -1,0 +1,5 @@
+services:
+  Drupal\content_moderation\EntityOperations:
+    class: Drupal\translations_moderation_pack\PackedEntityOperations
+    arguments: ['@content_moderation.moderation_information', '@entity_type.manager', '@form_builder', '@entity_type.bundle.info', '@router.builder'] 
+

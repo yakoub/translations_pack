@@ -1,22 +1,30 @@
-details.translation-tabs .item-list ul {
-  display: flex;
-}
-
-details.translation-tabs .item-list li {
-  background-color: #ddd;
-  padding: 0.2em 1em;
-  border-radius: 0.5em 0.5em 0 0;
-  list-style: none;
-  cursor: pointer;
-}
-
-details.translation-tabs .item-list li.active {
-  background-color: #eee;
-}
-
-details.translation-tabs .details-wrapper > .form-wrapper {
+form.translations-pack-language-selector {
   display: none;
 }
-details.translation-tabs .details-wrapper > .form-wrapper.active {
+
+form table.translations-tabs td, form table.translations-tabs th {
+  text-align: center;
+}
+form table.translations-tabs td {
+  background-color: #f2f2f0;
+  font-weight: bold;
+  cursor: pointer;
+  border: solid #909090;
+}
+
+form table.translations-tabs td.has-error {
+  color: #dc2323;
+  font-weight: bold;
+}
+
+form table.translations-tabs td.active {
+  background-color: #fcfcfa;
+  font-size: larger;
+}
+
+.translation-pack > .form-wrapper {
+  display: none;
+}
+.translation-pack > .form-wrapper.active {
   display: block;
 }
