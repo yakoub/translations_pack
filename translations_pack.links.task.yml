@@ -1,0 +1,8 @@
+translations_pack.content_translations:
+  title: Single
+  route_name: entity.node.edit_form
+  parent_id: entity.node.edit_form
+translations_pack.packed_form:
+  title: Translations
+  route_name: translations_pack.node
+  parent_id: entity.node.edit_form

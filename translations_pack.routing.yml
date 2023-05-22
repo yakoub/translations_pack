@@ -1,0 +1,25 @@
+translations_pack.node:
+  path: '/node/{node}/edit/pack'
+  defaults:
+    _title: 'Packed form'
+    _controller: '\Drupal\translations_pack\Controller\TranslationsPackController::build_node'
+  requirements:
+    _permission: 'translate editable entities'
+  options:
+    _admin_route: true
+    parameters:
+      entity:
+        type: entity:node
+
+translations_pack.rating:
+  path: '/rating/{rating}/translations/pack'
+  defaults:
+    _title: 'Packed form'
+    _controller: '\Drupal\translations_pack\Controller\TranslationsPackController::build_rating'
+  requirements:
+    _permission: 'translate editable entities'
+  options:
+    _admin_route: true
+    parameters:
+      entity:
+        type: entity:rating

@@ -1,0 +1,22 @@
+details.translation-tabs .item-list ul {
+  display: flex;
+}
+
+details.translation-tabs .item-list li {
+  background-color: #ddd;
+  padding: 0.2em 1em;
+  border-radius: 0.5em 0.5em 0 0;
+  list-style: none;
+  cursor: pointer;
+}
+
+details.translation-tabs .item-list li.active {
+  background-color: #eee;
+}
+
+details.translation-tabs .details-wrapper > .form-wrapper {
+  display: none;
+}
+details.translation-tabs .details-wrapper > .form-wrapper.active {
+  display: block;
+}
