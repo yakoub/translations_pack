@@ -60,9 +60,11 @@ class TranslationsPackController extends ContentTranslationController {
       $revision_id = $entity_storage->getLatestRevisionId($entity->id());
       $entity = $entity_storage->loadRevision($revision_id);
       $current_language = $this->languageManager()
-        ->getCurrentLanguage(LanguageInterface::TYPE_CONTENT);
-      if ($entity->language()->getId() != $current_language->getId()) {
-        $entity = $entity->getTranslation($current_language->getId());
+        ->getCurrentLanguage(LanguageInterface::TYPE_CONTENT)->getId();
+      if ($entity->language()->getId() != $current_language) {
+        if ($entity->hasTranslation($current_language)) {
+          $entity = $entity->getTranslation($current_language);
+        }
       }
     }
     $this->entity = $entity;
