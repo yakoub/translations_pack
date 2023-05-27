@@ -195,7 +195,7 @@ class TranslationsPackController extends ContentTranslationController {
       ->getForm($selector_form, $language_selection, $this->active_languages);
 
     $build['original']['tabs'] = $build['language_selector']['tabs'];
-    $build['original']['tabs']['#weight'] = -1;
+    $build['original']['tabs']['#weight'] = -50;
     unset($build['language_selector']['tabs']);
 
     foreach ($this->languageManager()->getLanguages() as $lang_code => $language) {

@@ -28,27 +28,31 @@ class LanguageSelectorForm extends FormBase {
     $first = key($active_languages);
 
     $form['tabs'] = [
-      '#theme' => 'table',
-      '#attributes' => ['class' => ['translations-tabs']],
-      '#header' => [],
+      '#theme' => 'item_list',
+      '#wrapper_attributes' => ['class' => ['translations-tabs']],
+      '#items' => [],
     ];
 
     $has_translation[$first] = true;
     foreach ($active_languages as $code => $language) {
-      $form['tabs']['#header'][] = $language->getName();
-      
-      $form['tabs']['#rows'][0][$code] = [
-        'data' => isset($has_translation[$code]) ? 'Edit' : 'Activate',
-        'data-code' => $code,
-        'data-state' => isset($has_translation[$code]) ? 'on' : 'off',
+      $activated = isset($has_translation[$code]);
+      $item = [
+        '#plain_text' => $language->getName(),
+        '#wrapper_attributes' => [
+          'data-code' => $code,
+          'data-state' => $activated ? 'on' : 'off',
+          'class' => ['language-tab']
+        ],
       ];
+
+      $form['tabs']['#items'][$code] = $item;
       $options[$code] = $code;
       if (isset($has_translation[$code])) {
         $default[] = $code;
       }
     }
 
-    $form['tabs']['#rows'][0][$first]['class'] = ['active'];
+    $form['tabs']['#items'][$first]['#wrapper_attributes']['class'][] = 'active';
 
     $form['language_selection'] = [
       '#type' => 'checkboxes',

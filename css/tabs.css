@@ -2,24 +2,37 @@ form.translations-pack-language-selector {
   display: none;
 }
 
-form table.translations-tabs td, form table.translations-tabs th {
-  text-align: center;
-}
-form table.translations-tabs td {
-  background-color: #f2f2f0;
-  font-weight: bold;
-  cursor: pointer;
-  border: solid #909090;
+form .translations-tabs ul {
+  display: flex;
+  background-color: black;
+  margin: 0;
 }
 
-form table.translations-tabs td.has-error {
+form .translations-tabs .language-tab {
+  text-align: center;
+  color: #d0d0d0;
+  font-weight: bold;
+  cursor: pointer;
+  list-style: none;
+  margin: 0;
+  padding: 0.3em 1em;
+}
+
+form .translations-tabs .language-tab a {
+  color: #800;
+}
+
+form .translations-tabs .language-tab[data-state="off"] {
+  text-decoration: line-through;
+}
+
+form .translations-tabs .has-error {
   color: #dc2323;
   font-weight: bold;
 }
 
-form table.translations-tabs td.active {
-  background-color: #fcfcfa;
-  font-size: larger;
+form .translations-tabs .language-tab.active {
+  background-color: #333;
 }
 
 .translation-pack > .form-wrapper {

@@ -43,17 +43,12 @@ Drupal.behaviors.translation_tabs = {
   },
 
   tabs_init: function(packs) {
-    var item_list = this.packed_form.querySelector('table.translations-tabs tbody tr');
+    var item_list = this.packed_form.querySelector('.translations-tabs');
     this.tabs = new translationTabs(item_list, packs);
     for (pack of packs) {
       for (let next_element of pack.querySelectorAll('[data-lang-pack]')) {
         this.associate_form(next_element);
       }
-    }
-
-    var self = this;
-    for (check of item_list.querySelectorAll('input')) {
-      check.addEventListener('change',);
     }
   },
 
@@ -151,13 +146,10 @@ function translationTabs(item_list, packs) {
       self.cancel_language(tab);
       return;
     }
-    else if (event.target.nodeName != 'TD') {
-      console.log(event.target.nodeName);
-      return;
-    }
+
     tab = event.target;
 
-    active_code = self.item_list.querySelector('td.active').dataset.code;
+    active_code = self.item_list.querySelector('.language-tab.active').dataset.code;
     var form = Drupal.behaviors.translation_tabs.forms[active_code];
     if (form.checkValidity()) {
       self.show(tab);
@@ -173,9 +165,9 @@ function translationTabs(item_list, packs) {
 translationTabs.prototype.update_language = function(tab) {
   if (tab.dataset.state == 'off') {
     tab.dataset.state = 'on';
-    tab.textContent = Drupal.t('Edit');
     var cancel = document.createElement('a');
-    cancel.textContent = ' (Cancel) ';
+    cancel.textContent = ' [X] ';
+    cancel.title = Drupal.t('Cancel');
     tab.appendChild(cancel);
     this.enable(tab.dataset.code);
 
@@ -191,7 +183,6 @@ translationTabs.prototype.cancel_language = function(tab) {
   if (a) {
     tab.removeChild(a);
   }
-  tab.textContent = Drupal.t('Activate');
   this.disable(tab.dataset.code);
 
   var name = 'language_selection['+tab.dataset.code+']';
@@ -201,7 +192,7 @@ translationTabs.prototype.cancel_language = function(tab) {
 
 
 translationTabs.prototype.show = function(tab) {
-  this.item_list.querySelector('td.active').classList.remove('active');
+  this.item_list.querySelector('.language-tab.active').classList.remove('active');
   tab.classList.add('active');
 
   this.packs.forEach((pack) => {
@@ -218,7 +209,7 @@ translationTabs.prototype.show = function(tab) {
 };
 
 translationTabs.prototype.showByCode = function(code) {
-  for (tab of this.item_list.querySelectorAll('td')) {
+  for (tab of this.item_list.querySelectorAll('.language-tab')) {
     if (tab.dataset.code == code) {
       this.show(tab);
       break;
@@ -227,14 +218,14 @@ translationTabs.prototype.showByCode = function(code) {
 }
 
 translationTabs.prototype.disable = function(lang_code) {
-  var tab = this.item_list.querySelector(`td[data-code="${lang_code}"`);
+  var tab = this.item_list.querySelector(`.language-tab[data-code="${lang_code}"`);
 
-  var first_tab = this.item_list.querySelector('td:first-child');
+  var first_tab = this.item_list.querySelector('.language-tab:first-child');
   this.show(first_tab);
 };
 
 translationTabs.prototype.enable = function(lang_code) {
-  var tab = this.item_list.querySelector(`td[data-code="${lang_code}"`);
+  var tab = this.item_list.querySelector(`.language-tab[data-code="${lang_code}"`);
 };
 
 })(Drupal);
