@@ -4,7 +4,7 @@ use Drupal\Core\Entity\ContentEntityInterface;
 function translations_moderation_pack_translations_pack_alter
   (&$build, ContentEntityInterface $entity) 
 {
-  if (!isset($build['original']['moderation_state'])) {
+  if (!isset($build['original']['moderation_state']['moderation_state_original']['widget'])) {
     return;
   }
   $build['original']['moderation_state']['check_sync'] = [
