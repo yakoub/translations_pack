@@ -67,7 +67,6 @@ Drupal.behaviors.translation_tabs = {
           let next_form = this.context.forms[langcode];
           if (!next_form.checkValidity()) {
             this.context.tabs.showByCode(langcode);
-            window.alert(Drupal.t('Please check hidden elements for possible validation errors'));
             next_form.reportValidity();
             event.preventDefault();
             return;
