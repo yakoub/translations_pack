@@ -93,7 +93,7 @@ class TranslationsPackController extends ContentTranslationController {
     $original_completed = FALSE;
     if ($request->isMethod('POST')) {
       if ($request->request->has('language_selection')) {
-        $this->language_selection = $request->request->get('language_selection');
+        $this->language_selection = $request->request->all('language_selection');
       }
       if (!$request->request->has('form_id')) {
         $original_completed = TRUE;

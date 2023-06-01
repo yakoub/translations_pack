@@ -25,7 +25,7 @@ class GroupPackRouteSubscriber extends RouteSubscriberBase {
     }
   }
 
-  public static function getSubscribedEvents() {
+  public static function getSubscribedEvents() : array {
     $events = parent::getSubscribedEvents();
     // Should run after AdminRouteSubscriber so the routes can inherit admin
     // status of the edit routes on entities. Therefore priority -210.
