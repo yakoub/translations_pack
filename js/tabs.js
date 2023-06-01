@@ -82,7 +82,6 @@ Drupal.behaviors.translation_tabs = {
         let next_form = this.context.packed_form;
         if (!next_form.checkValidity()) {
           this.context.tabs.showByCode(langcode);
-          window.alert(Drupal.t('Please check hidden elements for possible validation errors'));
           next_form.reportValidity();
           event.preventDefault();
           return;
@@ -155,7 +154,6 @@ function translationTabs(item_list, packs) {
       self.update_language(tab);
     }
     else {
-      window.alert(Drupal.t('Please check hidden elements for possible validation errors'));
       form.reportValidity();
     }
   });
