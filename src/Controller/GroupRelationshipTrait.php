@@ -4,7 +4,9 @@ namespace Drupal\translations_pack\Controller;
 
 use Drupal\group\Entity\GroupInterface;
 use Drupal\group\Entity\Storage\GroupRelationshipTypeStorageInterface;
+use Drupal\Core\Language\LanguageInterface;
 
+// copied from Drupal\group\Entity\Controller\GroupRelationshipController
 trait GroupRelationshipTrait {
 
   /**
@@ -68,6 +70,13 @@ trait GroupRelationshipTrait {
           $values[$key] = $bundle;
         }
         $entity = $storage->create($values);
+        // original group code doesn't set the language
+        if ($entity->getEntityType()->hasKey('langcode')) {
+          $language = $this->languageManager()
+              ->getCurrentLanguage(LanguageInterface::TYPE_CONTENT);
+          $langcode_key = $entity->getEntityType()->getKey('langcode');
+          $entity->set($langcode_key, $language->getId());
+        }
       }
 
       // Use the add form handler if available.
