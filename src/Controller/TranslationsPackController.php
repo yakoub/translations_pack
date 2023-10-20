@@ -109,6 +109,9 @@ class TranslationsPackController extends ContentTranslationController {
       try {
         $this->active_languages[$this->original_lang->getId()] = $this->original_lang; 
         $build['original'] = $this->getOriginalForm($entity);
+        if (isset($build['original']['langcode'])) {
+          $build['original']['langcode']['#access'] = FALSE;
+        }
         $build['original']['#attributes']['data-lang-code'] = $this->original_lang->getId();
       }
       catch (EnforcedResponseException $e) {
@@ -179,12 +182,16 @@ class TranslationsPackController extends ContentTranslationController {
       }
     }
 
-    if (isset($build['original'])) {
-      $build['original']['translations_pack_active_id'] = [
-        '#type' => 'hidden',
-        '#attributes' => ['name' => 'translations_pack_active_id'],
-      ];
-    }
+    $build['original']['translations_pack_active_id'] = [
+      '#type' => 'hidden',
+      '#attributes' => ['name' => 'translations_pack_active_id'],
+    ];
+    // browser blocks submission if no change is detected.
+    $build['original']['translations_pack_change'] = [
+      '#type' => 'hidden',
+      '#attributes' => ['name' => 'translations_pack_change'],
+    ];
+
     return $build;
   }
 
@@ -313,6 +320,9 @@ class TranslationsPackController extends ContentTranslationController {
   protected $control_names = ['form_id', 'form_token', 'form_build_id'];
 
   function integrateTranslationForm(array &$original, array &$translation_form, $lang_code) {
+    if (isset($translation_form['langcode'])) {
+      $translation_form['langcode']['#access'] = FALSE;
+    }
     if (!$this->translatable_names) {
       $this->setupTranslationPack($original, $translation_form);
     }

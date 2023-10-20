@@ -1,16 +1,22 @@
 (function(Drupal) {
 
 Drupal.behaviors.translation_tabs = {
+  initialized: false,
   attach: function(context, settings) {
     if (context.nodeName != '#document') {
-      if ('langPack' in context.parentElement.dataset) {
+      if (context.parentElement && ('langPack' in context.parentElement.dataset)) {
         this.associate_form(context.parentElement);
       }
       return;
     }
+    if (this.initialized) {
+      return;
+    }
+    this.initialized = true;
 
     this.selector_form = document.forms['translations-pack-language-selector'];
     this.packed_form = this.selector_form.parentElement.querySelector('form[data-lang-code]');
+    this.packed_change = 0;
     this.forms = {};
     this.forms[this.packed_form.dataset.langCode] =  this.packed_form;
     other_forms = this.packed_form.parentElement.querySelectorAll('form[data-lang-root]');
@@ -25,11 +31,15 @@ Drupal.behaviors.translation_tabs = {
 
     // handle hidden tabs validation
     this.pack_validate();
+    this.invalid_tabs();
     
     // package all translation data to form submission
     this.pack_submission(context, settings);
+
+    // propogate change in translations to the master packed form
+    this.pack_change_trigger();
   },
-  
+
   associate_form: function (wrapper) {
     var code = wrapper.dataset.langPack;
     if (code == 'original') {
@@ -50,6 +60,11 @@ Drupal.behaviors.translation_tabs = {
         this.associate_form(next_element);
       }
     }
+
+    var self = this;
+    for (check of item_list.querySelectorAll('input')) {
+      check.addEventListener('change',);
+    }
   },
 
   pack_validate: function() {
@@ -68,6 +83,7 @@ Drupal.behaviors.translation_tabs = {
           if (!next_form.checkValidity()) {
             this.context.tabs.showByCode(langcode);
             next_form.reportValidity();
+            this.context.reportTabErrors();
             event.preventDefault();
             return;
           }
@@ -83,11 +99,13 @@ Drupal.behaviors.translation_tabs = {
         if (!next_form.checkValidity()) {
           this.context.tabs.showByCode(langcode);
           next_form.reportValidity();
+          this.context.reportTabErrors();
           event.preventDefault();
           return;
         }
       }
     };
+
     var op_element = this.packed_form.elements['op'];
     if ('length' in op_element) {
       for (let action of op_element) {
@@ -96,6 +114,62 @@ Drupal.behaviors.translation_tabs = {
     }
     else {
       op_element.addEventListener('click', original_handler);
+    }
+  },
+
+  invalid_tabs: function() {
+    this.vertical_tab_menu_items =
+      this.packed_form.querySelectorAll('.vertical-tabs__menu .vertical-tabs__menu-item');
+    this.vertical_tab_errors = new Set();
+
+    var handler = {
+      context: this,
+      handleEvent: function(event) {
+        var group_tab = this.groupTab(event.target);
+        if (group_tab) {
+          this.context.vertical_tab_errors.add('#'+group_tab);
+        }
+      },
+      groupTab: function(elm) {
+        while (!elm.classList.contains('field-group-tab')) {
+          elm = elm.parentElement;
+          if (elm.tagName == 'FORM') {
+            console.log('Failed to find group tab');
+            return false;
+          }
+        }
+        return elm.dataset.drupalSelector;
+      },
+    };
+    for (let elm of this.packed_form.querySelectorAll('input')) {
+      elm.addEventListener('invalid', handler);
+    }
+    for (let tab_item of this.vertical_tab_menu_items) {
+      tab_item.addEventListener('click', function(event) {
+        this.classList.remove('has-error');
+      });
+    }
+  },
+
+  reportTabErrors: function() {
+    if (!this.vertical_tab_menu_items) {
+      return;
+    }
+    for (let tab_item of this.vertical_tab_menu_items) {
+      let group_tab = tab_item.firstChild.hash;
+      if (this.vertical_tab_errors.has(group_tab)) {
+        this.vertical_tab_errors.delete(group_tab);
+        tab_item.classList.add('has-error');
+      }
+    }
+  },
+
+  clearTabErrors: function() {
+    if (!this.vertical_tab_menu_items) {
+      return;
+    }
+    for (let tab_item of this.vertical_tab_menu_items) {
+      tab_item.classList.remove('has-error');
     }
   },
 
@@ -129,6 +203,25 @@ Drupal.behaviors.translation_tabs = {
       }
     };
     this.packed_form.addEventListener('formdata', handler);
+  },
+
+  pack_change_trigger: function() {
+    var handler = {
+      context: this,
+      handleEvent: function(event) {
+        this.context.pack_inc();
+      }
+    } 
+
+    for (let code in this.forms) {
+      this.forms[code].addEventListener('change', handler);
+    }
+  },
+
+  pack_inc: function() {
+    this.packed_change++;
+    this.packed_form.elements['translations_pack_change'].value =
+      this.packed_change;
   }
 }
 
@@ -144,17 +237,18 @@ function translationTabs(item_list, packs) {
       self.cancel_language(tab);
       return;
     }
-
     tab = event.target;
 
     active_code = self.item_list.querySelector('.language-tab.active').dataset.code;
     var form = Drupal.behaviors.translation_tabs.forms[active_code];
     if (form.checkValidity()) {
+      Drupal.behaviors.translation_tabs.clearTabErrors();
       self.show(tab);
       self.update_language(tab);
     }
     else {
       form.reportValidity();
+      Drupal.behaviors.translation_tabs.reportTabErrors();
     }
   });
 }

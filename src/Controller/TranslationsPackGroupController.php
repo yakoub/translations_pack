@@ -6,6 +6,7 @@ use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\group\Entity\GroupInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Drupal\Core\Form\EnforcedResponseException;
+use Drupal\translations_pack\PackConfig;
 
 class TranslationsPackGroupController extends TranslationsPackController {
   use GroupRelationshipTrait; 
@@ -22,7 +23,11 @@ class TranslationsPackGroupController extends TranslationsPackController {
       $this->response_exception = $e;
     }
     $entity_type_id = $this->entity->getEntityTypeId();
-    if ($entity_type_id == 'group_content') {
+    $bundle = $this->entity->bundle();
+    if ($entity_type_id == 'group_content' || !PackConfig::enabled($entity_type_id, $bundle)) {
+      if ($this->response_exception) {
+        throw $this->response_exception;
+      }
       return $this->form;
     }
     return $this->build_pack($entity_type_id, $request, $route_match);

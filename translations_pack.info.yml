@@ -1,7 +1,7 @@
 name: translations pack
 description: edit all translations in packed form
 type: module
-package: Custom
+package: Multilingual
 core_version_requirement: ^10
 dependencies:
   - content_translation

@@ -13,11 +13,6 @@ services:
     arguments: ['@entity_type.manager']
     tags:
       - { name: access_check, applies_to: _access_translations_pack_create }
-  translations_pack.group_access:
-    class: Drupal\translations_pack\Access\TranslationsPackGroupAccess
-    arguments: ['@entity_type.manager']
-    tags:
-      - { name: access_check, applies_to: _access_translations_pack_group }
   translations_pack.edit_access:
     class: Drupal\translations_pack\Access\TranslationsPackEditAccess
     arguments: ['@entity_type.manager']

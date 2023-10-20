@@ -1,21 +1,3 @@
-translations_pack.content_translations:
-  title: Single
-  route_name: entity.node.edit_form
-  parent_id: entity.node.edit_form
-translations_pack.packed_form:
-  title: Translations
-  route_name: entity.node.translations_pack_edit
-  parent_id: entity.node.edit_form
-
-translations_pack.content_add:
-  title: Single
-  route_name: node.add
-  base_route: node.add
-translations_pack.packed_form_add:
-  title: Translations
-  route_name: entity.node.translations_pack_add
-  base_route: node.add
-
 translations_pack.local_tasks:
   deriver: 'Drupal\translations_pack\Plugin\Derivative\TranslationsPackLocalTasks'
   weight: 100

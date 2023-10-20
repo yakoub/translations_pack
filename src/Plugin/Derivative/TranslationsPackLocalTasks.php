@@ -8,6 +8,7 @@ use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\translations_pack\PackConfig;
 
 /**
  * Provides dynamic local tasks for content translation.
@@ -52,67 +53,81 @@ class TranslationsPackLocalTasks extends DeriverBase implements ContainerDeriver
   public function getDerivativeDefinitions($base_plugin_definition) {
     // Create tabs for all possible entity types.
     foreach ($this->contentTranslationManager->getSupportedEntityTypes() as $entity_type_id => $entity_type) {
-      if ($entity_type_id == 'node') {
-        continue;
-      }
       if ($entity_type_id == 'group_content') {
-        $this->getGroupDerivative($base_plugin_definition);
         continue;
       }
-      
       $routes = [];
+      $all_enabled = PackConfig::enabled($entity_type_id);
 
-      if (
+      $has_add_link = 
         $entity_type->hasLinkTemplate('drupal:content-translation-add') &&
-        $entity_type->hasLinkTemplate('add-form')
-      ) {
-        $translation_pack_name = "entity.$entity_type_id.translations_pack_add";
-        $base_route_name = "entity.$entity_type_id.add_form";
-        $routes[$base_route_name] = [$translation_pack_name, 'base_route'];
-      }
+        $entity_type->hasLinkTemplate('add-form');
 
-      if ($entity_type->hasLinkTemplate('drupal:content-translation-edit')) {
-        $translation_pack_name = "entity.$entity_type_id.translations_pack_edit";
-        $base_route_name = "entity.$entity_type_id.edit_form";
-        $routes[$base_route_name] = [$translation_pack_name, 'parent_id'];
-      }
+      if ($has_add_link || $entity_type_id == 'node') {
+        if ($all_enabled) {
+          $pack_name = "entity.$entity_type_id.single_add_form";
+          $base_title = $this->t('Translations');
+          $pack_title = $this->t('Single');
+        }
+        else {
+          $pack_name = "entity.$entity_type_id.pack_add_form";
+          $base_title = $this->t('Single');
+          $pack_title = $this->t('Translations');
+        }
 
-      foreach ($routes as $base_name => $config) {
-        list($pack_name, $parent) = $config;
+        if ($entity_type_id == 'node') {
+          $base_name = "node.add";
+        }
+        else {
+          $base_name = "entity.$entity_type_id.add_form";
+        }
+        $parent = 'base_route';
+
         $this->derivatives[$base_name] = [
           'entity_type' => $entity_type_id,
-          'title' => $this->t('Single'),
+          'title' => $base_title,
           'route_name' => $base_name,
           $parent => $base_name,
         ] + $base_plugin_definition;
 
         $this->derivatives[$pack_name] = [
           'entity_type' => $entity_type_id,
-          'title' => $this->t('Translations'),
+          'title' => $pack_title,
           'route_name' => $pack_name,
           $parent => $base_name,
         ] + $base_plugin_definition;
       }
+
+      if ($entity_type->hasLinkTemplate('drupal:content-translation-edit')) {
+        if ($all_enabled) {
+          $pack_name = "entity.$entity_type_id.single_edit_form";
+          $base_title = $this->t('Translations');
+          $pack_title = $this->t('Single');
+        }
+        else {
+          $pack_name = "entity.$entity_type_id.pack_edit_form";
+          $base_title = $this->t('Single');
+          $pack_title = $this->t('Translations');
+        }
+        $base_name = "entity.$entity_type_id.edit_form";
+        $parent = 'parent_id';
+
+        $this->derivatives[$base_name] = [
+          'entity_type' => $entity_type_id,
+          'title' => $base_title,
+          'route_name' => $base_name,
+          $parent => $base_name,
+        ] + $base_plugin_definition;
+
+        $this->derivatives[$pack_name] = [
+          'entity_type' => $entity_type_id,
+          'title' => $pack_title,
+          'route_name' => $pack_name,
+          $parent => $base_name,
+        ] + $base_plugin_definition;
+
+      }
     }
     return parent::getDerivativeDefinitions($base_plugin_definition);
-  }
-
-  function getGroupDerivative($base_plugin_definition) {
-    $base_name = 'entity.group_content.create_form';
-    $pack_name = 'entity.group_content.translations_pack_add';
-
-    $this->derivatives['translations_pack.group_content_add'] = [
-      'entity_type' => 'group_content',
-      'title' => $this->t('Single'),
-      'route_name' => $base_name,
-      'base_route' => $base_name,
-    ] + $base_plugin_definition;
-
-    $this->derivatives['translations_pack.group_packed_form_add'] = [
-      'entity_type' => 'group_content',
-      'title' => $this->t('Translations'),
-      'route_name' => $pack_name,
-      'base_route' => $base_name,
-    ] + $base_plugin_definition;
   }
 }
