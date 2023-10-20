@@ -41,3 +41,7 @@ form .translations-tabs .language-tab.active {
 .translation-pack > .form-wrapper.active {
   display: block;
 }
+
+.vertical-tabs__menu-item.has-error .vertical-tabs__menu-link {
+  background-color: red;
+}
