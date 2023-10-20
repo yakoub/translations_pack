@@ -1,5 +1,6 @@
 <?php
 use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Render\Element;
 
 function translations_moderation_pack_translations_pack_alter
   (&$build, ContentEntityInterface $entity) 
@@ -7,11 +8,32 @@ function translations_moderation_pack_translations_pack_alter
   if (!isset($build['original']['moderation_state']['moderation_state_original']['widget'])) {
     return;
   }
-  $build['original']['moderation_state']['check_sync'] = [
+
+  $states = $build['original']['moderation_state'];
+  $previous_state = '';
+  $synced = TRUE;
+ 
+  foreach (Element::children($states) as $variation) {
+    $current_state = $states[$variation]['widget'][0]['state']['#default_value'];
+    
+    if ($previous_state && ($previous_state != $current_state)) {
+      $synced = FALSE;
+      break;
+    }
+    $previous_state = $current_state;
+  }
+
+  $check_sync = [
     '#type' => 'checkbox',
-    '#title' => 'Synchronize',
+    '#title' => t('Synchronise moderation states across translations'),
+    '#description_display' => 'after',
+    '#description' => t('Deactivated when different values are detected, in such case must be submited for backend validation.'),
     '#attributes' => ['class' => ['sync-states']],
-    '#checked' => TRUE,
+    '#checked' => $synced,
   ];
+  if (!$synced) {
+    $check_sync['#attributes']['disabled'] = 1;
+  }
+  $build['original']['moderation_state']['check_sync'] = $check_sync;
   $build['#attached']['library'][] = 'translations_moderation_pack/sync_states';
 }
