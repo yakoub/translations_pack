@@ -4,6 +4,7 @@ use Drupal\Core\Entity\ContentEntityFormInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\translations_pack\Form\TranslationForm;
+use Drupal\translations_pack\TranslationsPackHandler;
 use Drupal\language\Entity\ContentLanguageSettings;
 
 // workaround for bug of empty entity id when ajax used on new content form
@@ -33,6 +34,18 @@ function translations_pack_module_implements_alter(&$implementations, $hook) {
     $alter = $implementations['translations_pack'];
     unset($implementations['translations_pack']);
     $implementations['translations_pack'] = $alter;
+  }
+}
+
+function translations_pack_entity_type_alter(array &$entity_types) {
+  foreach ($entity_types as $name => $entity_type) {
+    if (!$entity_type->isTranslatable()) {
+      continue;
+    }
+    if ($entity_type->hasHandlerClass('translations_pack')) {
+      continue;
+    }
+    $entity_type->setHandlerClass('translations_pack', TranslationsPackHandler::class);
   }
 }
 

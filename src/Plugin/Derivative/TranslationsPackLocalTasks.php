@@ -8,6 +8,7 @@ use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\translations_pack\PackConfig;
 
 /**
@@ -30,10 +31,13 @@ class TranslationsPackLocalTasks extends DeriverBase implements ContainerDeriver
    */
   protected $contentTranslationManager;
 
-  public function __construct($base_plugin_id, ContentTranslationManagerInterface $content_translation_manager, TranslationInterface $string_translation) {
+  protected EntityTypeManagerInterface $entityTypeManager;
+
+  public function __construct($base_plugin_id, ContentTranslationManagerInterface $content_translation_manager, TranslationInterface $string_translation, EntityTypeManagerInterface $entity_type_manager) {
     $this->basePluginId = $base_plugin_id;
     $this->contentTranslationManager = $content_translation_manager;
     $this->stringTranslation = $string_translation;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -43,7 +47,8 @@ class TranslationsPackLocalTasks extends DeriverBase implements ContainerDeriver
     return new static(
       $base_plugin_id,
       $container->get('content_translation.manager'),
-      $container->get('string_translation')
+      $container->get('string_translation'),
+      $container->get('entity_type.manager')
     );
   }
 
@@ -56,77 +61,11 @@ class TranslationsPackLocalTasks extends DeriverBase implements ContainerDeriver
       if ($entity_type_id == 'group_content') {
         continue;
       }
-      $routes = [];
-      $all_enabled = PackConfig::enabled($entity_type_id);
-
-      $has_add_link = 
-        $entity_type->hasLinkTemplate('drupal:content-translation-add') &&
-        $entity_type->hasLinkTemplate('add-form');
-
-      if ($has_add_link || $entity_type_id == 'node') {
-        if ($all_enabled) {
-          $pack_name = "entity.$entity_type_id.single_add_form";
-          $base_title = $this->t('Translations');
-          $pack_title = $this->t('Single');
-        }
-        else {
-          $pack_name = "entity.$entity_type_id.pack_add_form";
-          $base_title = $this->t('Single');
-          $pack_title = $this->t('Translations');
-        }
-
-        if ($entity_type_id == 'node') {
-          $base_name = "node.add";
-        }
-        else {
-          $base_name = "entity.$entity_type_id.add_form";
-        }
-        $parent = 'base_route';
-
-        $this->derivatives[$base_name] = [
-          'entity_type' => $entity_type_id,
-          'title' => $base_title,
-          'route_name' => $base_name,
-          $parent => $base_name,
-        ] + $base_plugin_definition;
-
-        $this->derivatives[$pack_name] = [
-          'entity_type' => $entity_type_id,
-          'title' => $pack_title,
-          'route_name' => $pack_name,
-          $parent => $base_name,
-        ] + $base_plugin_definition;
+      if (!$entity_type->hasHandlerClass('translations_pack')) {
+        continue;
       }
-
-      if ($entity_type->hasLinkTemplate('drupal:content-translation-edit')) {
-        if ($all_enabled) {
-          $pack_name = "entity.$entity_type_id.single_edit_form";
-          $base_title = $this->t('Translations');
-          $pack_title = $this->t('Single');
-        }
-        else {
-          $pack_name = "entity.$entity_type_id.pack_edit_form";
-          $base_title = $this->t('Single');
-          $pack_title = $this->t('Translations');
-        }
-        $base_name = "entity.$entity_type_id.edit_form";
-        $parent = 'parent_id';
-
-        $this->derivatives[$base_name] = [
-          'entity_type' => $entity_type_id,
-          'title' => $base_title,
-          'route_name' => $base_name,
-          $parent => $base_name,
-        ] + $base_plugin_definition;
-
-        $this->derivatives[$pack_name] = [
-          'entity_type' => $entity_type_id,
-          'title' => $pack_title,
-          'route_name' => $pack_name,
-          $parent => $base_name,
-        ] + $base_plugin_definition;
-
-      }
+      $handler = $this->entityTypeManager->getHandler($entity_type_id, 'translations_pack');
+      $handler->deriveLocalTasks($this->derivatives, $base_plugin_definition);
     }
     return parent::getDerivativeDefinitions($base_plugin_definition);
   }

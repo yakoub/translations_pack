@@ -1,7 +1,7 @@
 services:
   translations_pack.subscriber:
     class: Drupal\translations_pack\Routing\TranslationsPackRouteSubscriber
-    arguments: ['@content_translation.manager']
+    arguments: ['@content_translation.manager', '@entity_type.manager']
     tags:
       - { name: event_subscriber }
   translations_pack.group_subscriber:
