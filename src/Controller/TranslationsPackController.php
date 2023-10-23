@@ -16,7 +16,6 @@ use Drupal\Core\Render\Element;
 use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\node\Entity\NodeType;
 
 class TranslationsPackController extends ContentTranslationController {
   protected $original_lang;
@@ -27,16 +26,6 @@ class TranslationsPackController extends ContentTranslationController {
   protected array $language_selection = [];
   protected array $tab_error = [];
   protected $entity;
-
-  public function build_add_node(NodeType $node_type, Request $request) {
-    $values = ['type' => $node_type->id()];
-    $node = $this->entityTypeManager()->getStorage('node')->create($values);
-    $language = $this->languageManager()
-        ->getCurrentLanguage(LanguageInterface::TYPE_CONTENT);
-    $node->set('langcode', $language->getId());
-    $route_match = new MockRouteMatch($node);
-    return $this->build_pack('node', $request, $route_match);
-  }
 
   public function build_add($form_operation, Request $request, RouteMatchInterface $route_match) {
     [$entity_type_id, $operation] = explode('.', $form_operation);
