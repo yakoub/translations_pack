@@ -48,10 +48,7 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
     ) {
       return $collection->get("entity.{$entity_type_id}.add_form");
     }
-
-    if ($this->entity_type->id() == 'node') {
-      return $collection->get('node.add');
-    }
+    return FALSE;
   }
 
   protected function addCreateAccess(Route $add_route, $entity_type_id) {
@@ -59,11 +56,16 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
     $add_route->setRequirement('_access_translations_pack_create', $entity_type_id);
   }
 
+  protected function routesAllEnabled() {
+    $entity_type_id = $this->entity_type->id();
+    return PackConfig::enabled($entity_type_id);
+  }
+
   public function alterCreateRoute(RouteCollection $collection) {
     $is_admin = $this->adminRoute($collection);
     $entity_type_id = $this->entity_type->id();
     $load_latest_revision = ContentTranslationManager::isPendingRevisionSupportEnabled($entity_type_id);
-    $all_enabled = PackConfig::enabled($entity_type_id);
+    $all_enabled = $this->routesAllEnabled();
     $original_route = FALSE;
 
     $original_route = $this->getOriginalAddRoute($collection);
@@ -104,7 +106,7 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
   public function alterUpdateRoute(RouteCollection $collection) {
     $entity_type_id = $this->entity_type->id();
     $is_admin = $this->adminRoute($collection);
-    $all_enabled = PackConfig::enabled($entity_type_id);
+    $all_enabled = $this->routesAllEnabled();
     $load_latest_revision = ContentTranslationManager::isPendingRevisionSupportEnabled($entity_type_id);
     $edit_route_path = $this->entity_type->getLinkTemplate('edit-form');
 
@@ -147,11 +149,11 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
   public function deriveLocalTasks(array &$derivatives, $base_plugin_definition) {
     $routes = [];
     $entity_type_id = $this->entity_type->id();
-    $all_enabled = PackConfig::enabled($entity_type_id);
+    $all_enabled = $this->routesAllEnabled();
 
     $has_add_link = $this->hasAddLink();
 
-    if ($has_add_link || $entity_type_id == 'node') {
+    if ($has_add_link) {
       if ($all_enabled) {
         $pack_name = "entity.$entity_type_id.single_add_form";
         $base_title = $this->t('Translations');
@@ -162,21 +164,20 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
         $base_title = $this->t('Single');
         $pack_title = $this->t('Translations');
       }
-      $base_name = $this->getAddBasename();
-      $parent = 'base_route';
+      $config = $this->getAddTasksConfig();
 
-      $derivatives[$base_name] = [
+      $derivatives[$config['base_name']] = [
         'entity_type' => $entity_type_id,
         'title' => $base_title,
-        'route_name' => $base_name,
-        $parent => $base_name,
+        'route_name' => $config['route_name'],
+        $config['parent'] => $config['parent_name'],
       ] + $base_plugin_definition;
 
       $derivatives[$pack_name] = [
         'entity_type' => $entity_type_id,
         'title' => $pack_title,
         'route_name' => $pack_name,
-        $parent => $base_name,
+        $config['parent'] => $config['parent_name'],
       ] + $base_plugin_definition;
     }
 
@@ -191,45 +192,47 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
         $base_title = $this->t('Single');
         $pack_title = $this->t('Translations');
       }
-      $base_name = $this->getEditBasename();
-      $parent = 'parent_id';
-      $entity_type_id = $this->entity_type->id();
-      $base_route_name = "entity.$entity_type_id.edit_form";
+      $config = $this->getEditTasksConfig();
 
-      $derivatives[$base_name] = [
+      $derivatives[$config['base_name']] = [
         'entity_type' => $entity_type_id,
         'title' => $base_title,
-        'route_name' => $base_route_name,
-        $parent => $base_name,
+        'route_name' => $config['route_name'],
+        $config['parent'] => $config['parent_name'],
       ] + $base_plugin_definition;
 
       $derivatives[$pack_name] = [
         'entity_type' => $entity_type_id,
         'title' => $pack_title,
         'route_name' => $pack_name,
-        $parent => $base_name,
+        $config['parent'] => $config['parent_name'],
       ] + $base_plugin_definition;
     }
-  }
-
-  protected function getAddBasename() {
-    $entity_type_id = $this->entity_type->id();
-    if ($entity_type_id == 'node') {
-      return "node.add";
-    }
-    else {
-      return "entity.$entity_type_id.add_form";
-    }
-  }
-
-  protected function getEditBasename() {
-    $entity_type_id = $this->entity_type->id();
-    return "entity.$entity_type_id.edit_form";
   }
 
   protected function hasAddLink() {
     return
       $this->entity_type->hasLinkTemplate('drupal:content-translation-add') &&
       $this->entity_type->hasLinkTemplate('add-form');
+  }
+
+  protected function getAddTasksConfig() {
+    $entity_type_id = $this->entity_type->id();
+    return [
+      'route_name' => "entity.$entity_type_id.add_form",
+      'base_name' => "entity.$entity_type_id.add_form",
+      'parent' => 'base_route',
+      'parent_name' => "entity.$entity_type_id.add_form", 
+    ];
+  }
+
+  protected function getEditTasksConfig() {
+    $entity_type_id = $this->entity_type->id();
+    return [
+      'route_name' => "entity.$entity_type_id.edit_form",
+      'base_name' => "entity.$entity_type_id.edit_form",
+      'parent' => 'parent_id',
+      'parent_name' => "entity.$entity_type_id.edit_form", 
+    ];
   }
 }
