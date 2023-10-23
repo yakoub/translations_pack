@@ -15,6 +15,8 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
   
   use StringTranslationTrait;
 
+  const ADD_Controller = '\Drupal\translations_pack\Controller\TranslationsPackController::build_add';
+
   protected EntityTypeInterface $entity_type;
 
   public function __construct(EntityTypeInterface $entity_type, TranslationInterface $string_translation) {
@@ -39,6 +41,24 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
     return $is_admin;
   }
 
+  protected function getOriginalAddRoute(RouteCollection $collection) {
+    if (
+      $this->entity_type->hasLinkTemplate('drupal:content-translation-add') &&
+      $this->entity_type->hasLinkTemplate('add-form')
+    ) {
+      return $collection->get("entity.{$entity_type_id}.add_form");
+    }
+
+    if ($this->entity_type->id() == 'node') {
+      return $collection->get('node.add');
+    }
+  }
+
+  protected function addCreateAccess(Route $add_route, $entity_type_id) {
+    // already has requirements cloned from `add-form` 
+    $add_route->setRequirement('_access_translations_pack_create', $entity_type_id);
+  }
+
   public function alterCreateRoute(RouteCollection $collection) {
     $is_admin = $this->adminRoute($collection);
     $entity_type_id = $this->entity_type->id();
@@ -46,15 +66,7 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
     $all_enabled = PackConfig::enabled($entity_type_id);
     $original_route = FALSE;
 
-    if (
-      $this->entity_type->hasLinkTemplate('drupal:content-translation-add') &&
-      $this->entity_type->hasLinkTemplate('add-form')
-    ) {
-      $original_route = $collection->get("entity.{$entity_type_id}.add_form");
-    }
-    elseif ($entity_type_id == 'node') {
-      $original_route = $collection->get('node.add');
-    }
+    $original_route = $this->getOriginalAddRoute($collection);
 
     if ($original_route) {
       if ($all_enabled) {
@@ -78,11 +90,9 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
         $defaults['entity_type_id'] = $entity_type_id;
       }
       unset($defaults['_entity_form']);
-      $defaults['_controller'] =
-        '\Drupal\translations_pack\Controller\TranslationsPackController::build_add';
+      $defaults['_controller'] = static::ADD_Controller;
       $add_route->setDefaults($defaults);
-      // already has requirements cloned from `add-form` 
-      $add_route->setRequirement('_access_translations_pack_create', $entity_type_id);
+      $this->addCreateAccess($add_route, $entity_type_id);
 
       if (!$all_enabled) {
         $add_route->setPath($add_route->getPath() . '/pack');
@@ -139,9 +149,7 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
     $entity_type_id = $this->entity_type->id();
     $all_enabled = PackConfig::enabled($entity_type_id);
 
-    $has_add_link = 
-      $this->entity_type->hasLinkTemplate('drupal:content-translation-add') &&
-      $this->entity_type->hasLinkTemplate('add-form');
+    $has_add_link = $this->hasAddLink();
 
     if ($has_add_link || $entity_type_id == 'node') {
       if ($all_enabled) {
@@ -154,13 +162,7 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
         $base_title = $this->t('Single');
         $pack_title = $this->t('Translations');
       }
-
-      if ($entity_type_id == 'node') {
-        $base_name = "node.add";
-      }
-      else {
-        $base_name = "entity.$entity_type_id.add_form";
-      }
+      $base_name = $this->getAddBasename();
       $parent = 'base_route';
 
       $derivatives[$base_name] = [
@@ -189,13 +191,15 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
         $base_title = $this->t('Single');
         $pack_title = $this->t('Translations');
       }
-      $base_name = "entity.$entity_type_id.edit_form";
+      $base_name = $this->getEditBasename();
       $parent = 'parent_id';
+      $entity_type_id = $this->entity_type->id();
+      $base_route_name = "entity.$entity_type_id.edit_form";
 
       $derivatives[$base_name] = [
         'entity_type' => $entity_type_id,
         'title' => $base_title,
-        'route_name' => $base_name,
+        'route_name' => $base_route_name,
         $parent => $base_name,
       ] + $base_plugin_definition;
 
@@ -206,5 +210,26 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
         $parent => $base_name,
       ] + $base_plugin_definition;
     }
+  }
+
+  protected function getAddBasename() {
+    $entity_type_id = $this->entity_type->id();
+    if ($entity_type_id == 'node') {
+      return "node.add";
+    }
+    else {
+      return "entity.$entity_type_id.add_form";
+    }
+  }
+
+  protected function getEditBasename() {
+    $entity_type_id = $this->entity_type->id();
+    return "entity.$entity_type_id.edit_form";
+  }
+
+  protected function hasAddLink() {
+    return
+      $this->entity_type->hasLinkTemplate('drupal:content-translation-add') &&
+      $this->entity_type->hasLinkTemplate('add-form');
   }
 }

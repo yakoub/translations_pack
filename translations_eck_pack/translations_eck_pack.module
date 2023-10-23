@@ -1,0 +1,11 @@
+<?php
+use Drupal\translations_eck_pack\TranslationsPackEckHandler;
+use Drupal\eck\Controller\EckEntityListBuilder;
+
+function translations_eck_pack_entity_type_alter(array &$entity_types) {
+  foreach ($entity_types as $name => $entity_type) {
+    if ($entity_type->getClass() == 'Drupal\eck\Entity\EckEntity') {
+      $entity_type->setHandlerClass('translations_pack', TranslationsPackEckHandler::class);
+    }
+  }
+}

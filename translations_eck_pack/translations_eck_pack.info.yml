@@ -1,0 +1,8 @@
+name: translations eck pack
+description: support eck entities
+type: module
+package: Multilingual
+core_version_requirement: ^10
+dependencies:
+  - eck
+  - translations_pack

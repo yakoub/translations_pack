@@ -1,0 +1,7 @@
+services:
+  translations_eck_pack.create_access:
+    class: Drupal\translations_eck_pack\Access\TranslationsEckPackCreateAccess
+    arguments: ['@entity_type.manager']
+    tags:
+      - { name: access_check, applies_to: _access_translations_eck_pack_create }
+
