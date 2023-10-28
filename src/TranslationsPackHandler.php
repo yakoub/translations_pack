@@ -73,37 +73,38 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
     }
 
     $original_route = $this->getOriginalAddRoute($collection);
+    if (!$original_route) {
+      return;
+    }
 
-    if ($original_route) {
-      if ($config_status == PackConfig::ENABLED) {
-        $route_single = clone $original_route;
-        $add_route = $original_route;
-        $route_single->setPath($original_route->getPath() . '/single');
-        $collection->add("entity.$entity_type_id.single_add_form", $route_single);
-      }
-      else {
-        $add_route = clone $original_route;
-      }
+    if ($config_status == PackConfig::ENABLED) {
+      $route_single = clone $original_route;
+      $add_route = $original_route;
+      $route_single->setPath($original_route->getPath() . '/single');
+      $collection->add("entity.$entity_type_id.single_add_form", $route_single);
+    }
+    else {
+      $add_route = clone $original_route;
+    }
 
-      $defaults = $add_route->getDefaults();
-      if (isset($defaults['_entity_form'])) {
-        $defaults['form_operation'] = $defaults['_entity_form'];
-      }
-      else {
-        $defaults['form_operation'] = "$entity_type_id.default";
-      }
-      if (!isset($defaults['entity_type_id'])) {
-        $defaults['entity_type_id'] = $entity_type_id;
-      }
-      unset($defaults['_entity_form']);
-      $defaults['_controller'] = static::ADD_Controller;
-      $add_route->setDefaults($defaults);
-      $this->addCreateAccess($add_route, $entity_type_id);
+    $defaults = $add_route->getDefaults();
+    if (isset($defaults['_entity_form'])) {
+      $defaults['form_operation'] = $defaults['_entity_form'];
+    }
+    else {
+      $defaults['form_operation'] = "$entity_type_id.default";
+    }
+    if (!isset($defaults['entity_type_id'])) {
+      $defaults['entity_type_id'] = $entity_type_id;
+    }
+    unset($defaults['_entity_form']);
+    $defaults['_controller'] = static::ADD_Controller;
+    $add_route->setDefaults($defaults);
+    $this->addCreateAccess($add_route, $entity_type_id);
 
-      if ($config_status == PackConfig::PARTIAL) {
-        $add_route->setPath($add_route->getPath() . '/pack');
-        $collection->add("entity.$entity_type_id.pack_add_form", $add_route);
-      }
+    if ($config_status == PackConfig::PARTIAL) {
+      $add_route->setPath($add_route->getPath() . '/pack');
+      $collection->add("entity.$entity_type_id.pack_add_form", $add_route);
     }
   }
 
