@@ -18,7 +18,7 @@ class TranslationsPackEditAccess implements AccessInterface {
 
   public function access(RouteMatchInterface $route_match, AccountInterface $account, $entity_type_id) {
     $entity = $route_match->getParameter($entity_type_id);
-    if (!PackConfig::enabled($entity_type_id, $entity->bundle())) {
+    if (!PackConfig::bundleEnabled($entity_type_id, $entity->bundle())) {
       return AccessResult::forbidden('disabled by translation pack config');
     }
     return AccessResult::allowed();

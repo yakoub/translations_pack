@@ -56,22 +56,26 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
     $add_route->setRequirement('_access_translations_pack_create', $entity_type_id);
   }
 
-  protected function routesAllEnabled() {
+  protected function configStatus() {
     $entity_type_id = $this->entity_type->id();
-    return PackConfig::enabled($entity_type_id);
+    return PackConfig::typeStatus($entity_type_id);
   }
 
   public function alterCreateRoute(RouteCollection $collection) {
     $is_admin = $this->adminRoute($collection);
     $entity_type_id = $this->entity_type->id();
     $load_latest_revision = ContentTranslationManager::isPendingRevisionSupportEnabled($entity_type_id);
-    $all_enabled = $this->routesAllEnabled();
+    $config_status = $this->configStatus();
+
     $original_route = FALSE;
+    if ($config_status == PackConfig::DISABLED) {
+      return;
+    }
 
     $original_route = $this->getOriginalAddRoute($collection);
 
     if ($original_route) {
-      if ($all_enabled) {
+      if ($config_status == PackConfig::ENABLED) {
         $route_single = clone $original_route;
         $add_route = $original_route;
         $route_single->setPath($original_route->getPath() . '/single');
@@ -96,7 +100,7 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
       $add_route->setDefaults($defaults);
       $this->addCreateAccess($add_route, $entity_type_id);
 
-      if (!$all_enabled) {
+      if ($config_status == PackConfig::PARTIAL) {
         $add_route->setPath($add_route->getPath() . '/pack');
         $collection->add("entity.$entity_type_id.pack_add_form", $add_route);
       }
@@ -106,11 +110,14 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
   public function alterUpdateRoute(RouteCollection $collection) {
     $entity_type_id = $this->entity_type->id();
     $is_admin = $this->adminRoute($collection);
-    $all_enabled = $this->routesAllEnabled();
+    $config_status = $this->configStatus();
+    if ($config_status == PackConfig::DISABLED) {
+      return;
+    }
     $load_latest_revision = ContentTranslationManager::isPendingRevisionSupportEnabled($entity_type_id);
     $edit_route_path = $this->entity_type->getLinkTemplate('edit-form');
 
-    if ($all_enabled) {
+    if ($config_status == PackConfig::ENABLED) {
       $route_single = clone $collection->get("entity.{$entity_type_id}.edit_form");
       $route_single->setPath($edit_route_path . '/single');
       $collection->remove("entity.{$entity_type_id}.edit_form");
@@ -137,7 +144,7 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
         ],
     ]);
     $route->setOption('_admin_route', $is_admin);
-    if ($all_enabled) {
+    if ($config_status == PackConfig::ENABLED) {
       $collection->add("entity.{$entity_type_id}.edit_form", $route);
     }
     else {
@@ -149,12 +156,15 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
   public function deriveLocalTasks(array &$derivatives, $base_plugin_definition) {
     $routes = [];
     $entity_type_id = $this->entity_type->id();
-    $all_enabled = $this->routesAllEnabled();
+    $config_status = $this->configStatus();
+    if ($config_status == PackConfig::DISABLED) {
+      return;
+    }
 
     $has_add_link = $this->hasAddLink();
 
     if ($has_add_link) {
-      if ($all_enabled) {
+      if ($config_status == PackConfig::ENABLED) {
         $pack_name = "entity.$entity_type_id.single_add_form";
         $base_title = $this->t('Translations');
         $pack_title = $this->t('Single');
@@ -182,7 +192,7 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
     }
 
     if ($this->entity_type->hasLinkTemplate('drupal:content-translation-edit')) {
-      if ($all_enabled) {
+      if ($config_status == PackConfig::ENABLED) {
         $pack_name = "entity.$entity_type_id.single_edit_form";
         $base_title = $this->t('Translations');
         $pack_title = $this->t('Single');

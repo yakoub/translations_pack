@@ -19,7 +19,7 @@ class TranslationsPackEckHandler extends TranslationsPackHandler {
     $add_route->setRequirement('_access_translations_eck_pack_create', $entity_type_id);
   }
   
-  protected function routesAllEnabled() {
+  protected function configStatus() {
     return TRUE;
   }
 

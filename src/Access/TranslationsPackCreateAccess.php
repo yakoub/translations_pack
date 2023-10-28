@@ -24,7 +24,7 @@ class TranslationsPackCreateAccess extends ContentTranslationOverviewAccess {
     $form_object = $this->entityTypeManager->getFormObject($entity_type_id, $operation);
     $entity = $form_object->getEntityFromRouteMatch($route_match, $entity_type_id);
     $bundle = $entity->bundle();
-    if (!PackConfig::enabled($entity_type_id, $bundle)) {
+    if (!PackConfig::bundleEnabled($entity_type_id, $bundle)) {
       return AccessResult::forbidden('disabled by translation pack config');
     }
 

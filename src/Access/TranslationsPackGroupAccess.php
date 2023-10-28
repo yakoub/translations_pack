@@ -41,7 +41,7 @@ class TranslationsPackGroupAccess extends ContentTranslationOverviewAccess {
       $values[$key] = $bundle;
     }
     $entity = $storage->create($values);
-    if (!PackConfig::enabled($entity_type_id, $entity->bundle())) {
+    if (!PackConfig::bundleEnabled($entity_type_id, $entity->bundle())) {
       return AccessResult::forbidden('disabled by config');
     }
 

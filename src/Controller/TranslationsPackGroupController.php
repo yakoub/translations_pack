@@ -24,7 +24,7 @@ class TranslationsPackGroupController extends TranslationsPackController {
     }
     $entity_type_id = $this->entity->getEntityTypeId();
     $bundle = $this->entity->bundle();
-    if ($entity_type_id == 'group_content' || !PackConfig::enabled($entity_type_id, $bundle)) {
+    if ($entity_type_id == 'group_content' || PackConfig::bundleEnabled($entity_type_id, $bundle)) {
       if ($this->response_exception) {
         throw $this->response_exception;
       }
