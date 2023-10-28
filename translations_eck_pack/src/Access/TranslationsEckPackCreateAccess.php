@@ -29,7 +29,7 @@ class TranslationsEckPackCreateAccess extends ContentTranslationOverviewAccess {
 
     $entity = $entityStorage->create(['type' => $eck_entity_bundle]);
 
-    if (!PackConfig::enabled($entity_type_id, $eck_entity_bundle)) {
+    if (!PackConfig::bundleEnabled($entity_type_id, $eck_entity_bundle)) {
       return AccessResult::forbidden('disabled by translation pack config');
     }
 

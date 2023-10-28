@@ -64,7 +64,6 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
   public function alterCreateRoute(RouteCollection $collection) {
     $is_admin = $this->adminRoute($collection);
     $entity_type_id = $this->entity_type->id();
-    $load_latest_revision = ContentTranslationManager::isPendingRevisionSupportEnabled($entity_type_id);
     $config_status = $this->configStatus();
 
     $original_route = FALSE;

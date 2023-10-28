@@ -11,7 +11,7 @@ use Drupal\eck\EckEntityTypeInterface;
 
 class TranslationsPackEckController extends TranslationsPackController {
 
-   function build_eck_add($form_operation, Request $request, RouteMatchInterface $route_match, EckEntityTypeInterface $eck_entity_type, $eck_entity_bundle) {
+   function build_eck_add(Request $request, RouteMatchInterface $route_match, EckEntityTypeInterface $eck_entity_type, $eck_entity_bundle) {
     $bundleStorage = $this->getBundleStorage($eck_entity_type);
     if (!$bundleStorage->load($eck_entity_bundle)) {
       throw new NotFoundHttpException($this->t('Bundle %bundle does not exist', ['%bundle' => $eck_entity_bundle]));
