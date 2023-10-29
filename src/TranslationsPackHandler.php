@@ -164,7 +164,7 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
     $has_add_link = $this->hasAddLink();
 
     if ($has_add_link) {
-      if ($config_status == PackConfig::ENABLED) {
+      if ($this->addTabDefault($config_status)) {
         $pack_name = "entity.$entity_type_id.single_add_form";
         $base_title = $this->t('Translations');
         $pack_title = $this->t('Single');
@@ -175,6 +175,9 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
         $pack_title = $this->t('Translations');
       }
       $config = $this->getAddTasksConfig();
+      if (isset($config['pack_name'])) {
+        $pack_name = $config['pack_name'];
+      }
 
       $derivatives[$config['base_name']] = [
         'entity_type' => $entity_type_id,
@@ -224,6 +227,10 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
     return
       $this->entity_type->hasLinkTemplate('drupal:content-translation-add') &&
       $this->entity_type->hasLinkTemplate('add-form');
+  }
+
+  protected function addTabDefault($config_status) {
+    return $config_status == PackConfig::ENABLED;
   }
 
   protected function getAddTasksConfig() {

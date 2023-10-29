@@ -32,7 +32,6 @@ class TranslationsPackEckHandler extends TranslationsPackHandler {
     }
     $add_route = $this->getEckAddRoute($collection);
     $defaults = $add_route->getDefaults();
-    $defaults['entity_type_id'] = $entity_type_id;
     $defaults['_controller'] = static::ADD_Controller;
     $add_route->setDefaults($defaults);
     $this->addCreateAccess($add_route, $entity_type_id);
@@ -43,8 +42,23 @@ class TranslationsPackEckHandler extends TranslationsPackHandler {
   }
 
   protected function hasAddLink() {
+    return TRUE;
+  }
+
+  protected function addTabDefault($config_state) {
     return FALSE;
   }
+
+  protected function getAddTasksConfig() {
+    return [
+      'route_name' => 'eck.entity.add',
+      'base_name' => 'eck.entity_content:eck.entity.add',
+      'pack_name' => 'eck.entity.pack',
+      'parent' => 'base_route',
+      'parent_name' => 'eck.entity.add',
+    ];
+  }
+
 
   protected function getEditTasksConfig() {
     $entity_type_id = $this->entity_type->id();

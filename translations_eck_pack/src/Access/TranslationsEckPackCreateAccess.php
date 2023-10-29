@@ -16,9 +16,10 @@ use Drupal\Core\Access\AccessResult;
  */
 class TranslationsEckPackCreateAccess extends ContentTranslationOverviewAccess {
 
-  public function access(RouteMatchInterface $route_match, AccountInterface $account, $entity_type_id) {
+  public function access(RouteMatchInterface $route_match, AccountInterface $account, $ignore = NULL) {
     $eck_entity_bundle = $route_match->getParameter('eck_entity_bundle');
     $eck_entity_type = $route_match->getParameter('eck_entity_type');
+    $entity_type_id = $eck_entity_type->id();
 
     $bundleStorage = $this->getBundleStorage($eck_entity_type);
     if (!$bundleStorage->load($eck_entity_bundle)) {
