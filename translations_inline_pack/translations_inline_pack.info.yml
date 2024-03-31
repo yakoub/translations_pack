@@ -1,0 +1,8 @@
+name: translations inline pack
+description: support inline entity
+type: module
+package: Multilingual
+core_version_requirement: ^9 || ^10
+dependencies:
+  - inline_entity_form
+  - translations_pack
