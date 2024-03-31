@@ -45,3 +45,10 @@ form .translations-tabs .language-tab.active {
 .vertical-tabs__menu-item.has-error .vertical-tabs__menu-link {
   background-color: red;
 }
+
+.translation-pack.form-actions a[data-lang-pack] {
+  display: none;
+}
+.translation-pack.form-actions > a[data-lang-pack].active {
+  display: inline;
+}

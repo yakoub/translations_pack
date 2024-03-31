@@ -27,8 +27,7 @@ class TranslationsPackCreateAccess extends ContentTranslationOverviewAccess {
     if (!PackConfig::bundleEnabled($entity_type_id, $bundle)) {
       return AccessResult::forbidden('disabled by translation pack config');
     }
-
-    $route_match = new MockRouteMatch($entity);
+    $route_match = new MockRouteMatch($entity, $entity->language());
     return parent::access($route_match, $account, $entity_type_id);
   }
 

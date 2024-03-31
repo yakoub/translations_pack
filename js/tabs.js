@@ -38,6 +38,13 @@ Drupal.behaviors.translation_tabs = {
 
     // propogate change in translations to the master packed form
     this.pack_change_trigger();
+
+    if (settings.hasOwnProperty('translations_pack_switch')) {
+      var langcode = settings.translations_pack_switch;
+      this.packed_form
+        .querySelector(`.translations-tabs .language-tab[data-code=${langcode}]`)
+        .click();
+    }
   },
 
   associate_form: function (wrapper) {
@@ -59,11 +66,6 @@ Drupal.behaviors.translation_tabs = {
       for (let next_element of pack.querySelectorAll('[data-lang-pack]')) {
         this.associate_form(next_element);
       }
-    }
-
-    var self = this;
-    for (check of item_list.querySelectorAll('input')) {
-      check.addEventListener('change',);
     }
   },
 
@@ -287,12 +289,12 @@ translationTabs.prototype.show = function(tab) {
   tab.classList.add('active');
 
   this.packs.forEach((pack) => {
-    let active = pack.querySelectorAll('.form-wrapper.active[data-lang-pack]');
+    let active = pack.querySelectorAll('.active[data-lang-pack]');
     if (active) {
       active.forEach((elm) => { elm.classList.remove('active'); });
     }
 
-    active = pack.querySelectorAll('.form-wrapper.field-language-' + tab.dataset.code);
+    active = pack.querySelectorAll('.field-language-' + tab.dataset.code);
     if (active) {
       active.forEach((elm) => { elm.classList.add('active'); });
     }

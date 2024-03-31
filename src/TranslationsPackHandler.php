@@ -117,22 +117,27 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
     $load_latest_revision = ContentTranslationManager::isPendingRevisionSupportEnabled($entity_type_id);
     $edit_route_path = $this->entity_type->getLinkTemplate('edit-form');
 
+
+    $defaults = 
+      [
+        '_controller' => 
+          '\Drupal\translations_pack\Controller\TranslationsPackController::build_pack',
+        '_title_callback' => '\Drupal\Core\Entity\Controller\EntityController::editTitle',
+        'entity_type_id' => $entity_type_id,
+      ];
     if ($config_status == PackConfig::ENABLED) {
       $route_single = clone $collection->get("entity.{$entity_type_id}.edit_form");
       $route_single->setPath($edit_route_path . '/single');
       $collection->remove("entity.{$entity_type_id}.edit_form");
       $collection->add("entity.$entity_type_id.single_edit_form", $route_single);
+      $original_defaults = $route_single->getDefaults();
+      if (isset($original_defaults['_title_callback'])) {
+        $defaults['_title_callback'] = $original_defaults['_title_callback'];
+      }
     }
 
     $route = new Route($edit_route_path);
-    $route->setDefaults(
-      [
-        '_controller' => 
-          '\Drupal\translations_pack\Controller\TranslationsPackController::build_pack',
-        '_title' => 'Translations',
-        'entity_type_id' => $entity_type_id,
-      ]
-    );
+    $route->setDefaults($defaults);
     $route->setRequirement('_entity_access', "{$entity_type_id}.update");
     $route->setRequirement('_access_content_translation_overview', $entity_type_id);
     $route->setRequirement('_access_translations_pack_edit', $entity_type_id);

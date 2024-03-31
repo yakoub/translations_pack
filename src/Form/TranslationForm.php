@@ -70,6 +70,9 @@ class TranslationForm extends ContentEntityForm {
   }
 
   protected function copyFormValuesToEntity(EntityInterface $entity, array $form, FormStateInterface $form_state) {
+    if ($entity->hasField('moderation_state')) {
+      $entity->_original_moderation_state = $entity->moderation_state->value;
+    }
     parent::copyFormValuesToEntity($entity, $form, $form_state);
     if (!$form_state instanceof TranslationsFormState) {
       $this->getLogger('translations_pack')->debug('wrong FormState implementation');

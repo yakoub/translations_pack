@@ -11,14 +11,19 @@ use Drupal\language\Entity\ContentLanguageSettings;
 // workaround for bug of empty entity id when ajax used on new content form
 function translations_pack_form_alter(&$form, FormStateInterface $form_state, $form_id) {
   $form_object = $form_state->getFormObject();
-  if ( $form_object instanceof ContentEntityFormInterface 
-    && isset($form['actions']['submit'])) {
-    $form['actions']['submit']['#submit'][] = 'translations_pack_save_newid';
-  }
-  if ($form_object instanceof TranslationForm 
-    && isset($form['actions']['submit'])) {
-    // override other module changes to retain submission callback
-    $form['actions']['submit']['#value'] = 'save';
+
+  if (isset($form['actions']['submit'])) {
+    if ($form_object instanceof ContentEntityFormInterface) {
+      $form['actions']['submit']['#submit'][] = 'translations_pack_save_newid';
+      $entity = $form_object->getEntity();
+      if (isset($entity->translations_pack_original)) {
+        $form['actions']['submit']['#value'] = t('Save (all translations)');
+      }
+    }
+    if ($form_object instanceof TranslationForm) {
+      // override other module changes to retain submission callback
+      $form['actions']['submit']['#value'] = 'save';
+    }
   }
 }
 

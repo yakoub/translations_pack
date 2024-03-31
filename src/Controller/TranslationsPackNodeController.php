@@ -15,7 +15,7 @@ class TranslationsPackNodeController extends TranslationsPackController {
     $language = $this->languageManager()
         ->getCurrentLanguage(LanguageInterface::TYPE_CONTENT);
     $node->set('langcode', $language->getId());
-    $route_match = new MockRouteMatch($node);
+    $route_match = new MockRouteMatch($node, $language);
     return $this->build_pack('node', $request, $route_match);
   }
 }
