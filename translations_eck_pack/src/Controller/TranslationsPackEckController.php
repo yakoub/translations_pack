@@ -24,7 +24,7 @@ class TranslationsPackEckController extends TranslationsPackController {
         ->getCurrentLanguage(LanguageInterface::TYPE_CONTENT);
     $langcode_key = $entity->getEntityType()->getKey('langcode');
     $entity->set($langcode_key, $language->getId());
-    $route_match = new MockRouteMatch($entity);
+    $route_match = new MockRouteMatch($entity, $language);
     return $this->build_pack($eck_entity_type->id(), $request, $route_match);
   }
 
