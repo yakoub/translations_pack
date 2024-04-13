@@ -42,6 +42,7 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
   }
 
   protected function getOriginalAddRoute(RouteCollection $collection) {
+    $entity_type_id = $this->entity_type->id();
     if (
       $this->entity_type->hasLinkTemplate('drupal:content-translation-add') &&
       $this->entity_type->hasLinkTemplate('add-form')

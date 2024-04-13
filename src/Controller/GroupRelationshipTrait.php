@@ -87,7 +87,7 @@ trait GroupRelationshipTrait {
     }
     // Wizard step 2: Group relationship form.
     else {
-      $relationship_type_storage = $this->entityTypeManager()->getStorage('group_content_type');
+      $relationship_type_storage = $this->entityTypeManager()->getStorage('group_relationship_type');
       assert($relationship_type_storage instanceof GroupRelationshipTypeStorageInterface);
 
       // Create an empty relationship entity.
@@ -95,7 +95,7 @@ trait GroupRelationshipTrait {
         'type' => $relationship_type_storage->getRelationshipTypeId($group->bundle(), $plugin_id),
         'gid' => $group->id(),
       ];
-      $entity = $this->entityTypeManager()->getStorage('group_content')->create($values);
+      $entity = $this->entityTypeManager()->getStorage('group_relationship')->create($values);
 
       // Group relationship entities have an add form handler.
       $operation = 'add';

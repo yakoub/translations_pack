@@ -11,7 +11,7 @@ use Symfony\Component\Routing\RouteCollection;
 class GroupPackRouteSubscriber extends RouteSubscriberBase {
 
   protected function alterRoutes(RouteCollection $collection) {
-    if ($route = $collection->get('entity.group_content.create_form')) {
+    if ($route = $collection->get('entity.group_relationship.create_form')) {
       $defaults = $route->getDefaults();
       $defaults['_controller'] =
         '\Drupal\translations_pack\Controller\TranslationsPackGroupController::build_group';

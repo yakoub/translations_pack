@@ -27,7 +27,7 @@ class TranslationsPackRouteSubscriber extends ContentTranslationRouteSubscriber 
    */
   protected function alterRoutes(RouteCollection $collection) {
     foreach ($this->contentTranslationManager->getSupportedEntityTypes() as $entity_type_id => $entity_type) {
-      if ($entity_type_id == 'group_content') {
+      if ($entity_type_id == 'group_relationship') {
         continue;
       }
       if (!$entity_type->hasHandlerClass('translations_pack')) {

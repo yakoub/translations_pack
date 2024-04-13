@@ -58,7 +58,7 @@ class TranslationsPackLocalTasks extends DeriverBase implements ContainerDeriver
   public function getDerivativeDefinitions($base_plugin_definition) {
     // Create tabs for all possible entity types.
     foreach ($this->contentTranslationManager->getSupportedEntityTypes() as $entity_type_id => $entity_type) {
-      if ($entity_type_id == 'group_content') {
+      if ($entity_type_id == 'group_relationship') {
         continue;
       }
       if (!$entity_type->hasHandlerClass('translations_pack')) {
