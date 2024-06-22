@@ -195,10 +195,11 @@ class TranslationsPackController extends ContentTranslationController {
     return $build;
   }
 
-  protected function tabsModerationStates(&$table) {
+  protected function tabsModerationStates(&$item_list) {
     foreach ($this->translation_states as $langcode => $state) {
-      $label = $table['#rows'][0][$langcode]['data'];
-      $table['#rows'][0][$langcode]['data'] = [
+      $label = $item_list['#items'][$langcode]['#plain_text'];
+      unset($item_list['#items'][$langcode]['#plain_text']);
+      $item_list['#items'][$langcode] += [
         '#type' => 'inline_template',
         '#template' => '{{label}} | {{state}}',
         '#context' => ['label' => $label, 'state' => $state]
@@ -321,8 +322,13 @@ class TranslationsPackController extends ContentTranslationController {
           ->addWarning($this->t('@language translation not saved', $args));
           continue;
       }
-      $state_changed = 
-        $saved_entity->_original_moderation_state != $saved_entity->moderation_state->value;
+      if ($saved_entity->hasField('moderstation_state')) {
+        $state_changed = 
+          $saved_entity->_original_moderation_state != $saved_entity->moderation_state->value;
+      }
+      else {
+        $state_changed = FALSE;
+      }
       if (!$state_changed && !$saved_entity->hasTranslationChanges()) {
         continue;
       }
