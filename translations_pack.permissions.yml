@@ -1,0 +1,3 @@
+access node single:
+  title: 'Access node single tab'
+  description: 'When pack is default tab then allow access to the core single form'

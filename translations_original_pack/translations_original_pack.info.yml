@@ -1,0 +1,7 @@
+name: translations original pack
+description: hide untranslatalble fields when switching
+type: module
+package: Multilingual
+core_version_requirement: ^10
+dependencies:
+  - translations_pack

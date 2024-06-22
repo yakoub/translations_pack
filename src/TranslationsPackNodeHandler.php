@@ -31,4 +31,8 @@ class TranslationsPackNodeHandler extends TranslationsPackHandler {
       'parent_name' => 'node.add',
     ];
   }
+
+  protected function singleTabPermission() {
+    return 'access node single';
+  }
 }

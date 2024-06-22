@@ -44,10 +44,22 @@ function translations_pack_module_implements_alter(&$implementations, $hook) {
 }
 
 function translations_pack_entity_type_alter(array &$entity_types) {
+  static $map = [
+    'node' => 'NodeTranslationHandler',
+    'term' => 'TermTranslationHandler',
+    'default' => 'ContentTranslationHandler'
+  ];
+  $namespace = 'Drupal\translations_pack\handlers\\';
   foreach ($entity_types as $name => $entity_type) {
     if (!$entity_type->isTranslatable()) {
       continue;
     }
+    $id = $entity_type->id();
+    if (!isset($map[$id])) {
+      $id = 'default';
+    }
+    $entity_type->setHandlerClass('translation', $namespace . $map[$id]);
+
     if ($entity_type->hasHandlerClass('translations_pack')) {
       continue;
     }

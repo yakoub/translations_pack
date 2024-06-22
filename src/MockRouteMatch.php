@@ -21,6 +21,11 @@ class MockRouteMatch extends NullRouteMatch {
       $context = [$context_key => $mock_context];
       $this->entity = $entity_repository
         ->getActive($entity->getEntityTypeId(), $entity->id(), $context);
+
+      if (!$this->entity->hasTranslation($language->getId())) {
+        $this->entity = $entity_repository
+          ->getCanonical($entity->getEntityTypeId(), $entity->id());
+      }
     }
   }
 

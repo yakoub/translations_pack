@@ -1,0 +1,8 @@
+tabs:
+  js:
+    js/tabs.js: {}
+  css:
+    component:
+      css/tabs.css: {}
+  dependencies:
+    - translations_pack/tabs

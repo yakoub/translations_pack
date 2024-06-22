@@ -1,0 +1,7 @@
+language.content_settings.*.*.third_party.translations_pack:
+  type: config_entity
+  label: 'Translation pack'
+  mapping:
+    pack_enabled:
+      type: checkbox
+      label: 'Enable Pack'

@@ -1,0 +1,21 @@
+<?php
+use Drupal\Core\Entity\ContentEntityInterface;
+
+function translations_original_pack_translations_pack_alter
+  (&$build, ContentEntityInterface $entity) 
+{
+  $attached = FALSE;
+  foreach ($entity as $field_name => $field_items) {
+    $definition = $field_items->getFieldDefinition();
+    if ($definition->isTranslatable() || $definition->getType() == 'entity_reference') {
+      continue;
+    }
+    if (isset($build['original'][$field_name])) {
+      $build['original'][$field_name]['#attributes']['class'][] = 'translation-single';
+      if (!$attached) {
+        $build['#attached']['library'][] = 'translations_original_pack/tabs';
+        $attached = TRUE;
+      }
+    }
+  }
+}

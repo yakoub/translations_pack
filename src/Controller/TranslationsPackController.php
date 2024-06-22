@@ -19,7 +19,7 @@ use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Routing\RouteMatchInterface;
 
 class TranslationsPackController extends ContentTranslationController {
- 
+  
   use EntityChangesDetectionTrait;
 
   protected $original_lang;
@@ -28,6 +28,7 @@ class TranslationsPackController extends ContentTranslationController {
   // succesful submit will not rebuild language form and so it won't be "active"
   protected array $active_languages = [];
   protected array $has_translation = [];
+  protected array $translation_states= [];
   protected array $language_selection = [];
   protected array $tab_error = [];
   protected $entity;
@@ -75,6 +76,10 @@ class TranslationsPackController extends ContentTranslationController {
 
     $this->original_lang = $entity->language();
     $this->source_lang = $entity->getUntranslated()->language();
+    if ($entity->hasField('moderation_state')) {
+      $this->translation_states[$entity->language()->getId()] = 
+        $entity->moderation_state->value;
+    }
 
     $response_exception = NULL;
     $is_ajax = $request->request->has('_drupal_ajax');
@@ -142,7 +147,11 @@ class TranslationsPackController extends ContentTranslationController {
       try {
         $route_match = new MockRouteMatch($entity, $language);
         if ($route_match->entity->hasTranslation($lang_code)) {
-          $this->has_translation[$lang_code] = true;
+          $this->has_translation[$lang_code] = TRUE;
+          if ($entity->hasField('moderation_state')) {
+            $this->translation_states[$lang_code] = 
+              $route_match->entity->getTranslation($lang_code)->moderation_state->value;
+          }
           $translation_form =
             $this->edit($language, $route_match, $entity->getEntityTypeId());
         }
@@ -186,8 +195,19 @@ class TranslationsPackController extends ContentTranslationController {
     return $build;
   }
 
-  public function build_pack($entity_type_id, Request $request, RouteMatchInterface $route_match) {
+  protected function tabsModerationStates(&$table) {
+    foreach ($this->translation_states as $langcode => $state) {
+      $label = $table['#rows'][0][$langcode]['data'];
+      $table['#rows'][0][$langcode]['data'] = [
+        '#type' => 'inline_template',
+        '#template' => '{{label}} | {{state}}',
+        '#context' => ['label' => $label, 'state' => $state]
+      ];
+    }
+  }
 
+  public function build_pack($entity_type_id, Request $request, RouteMatchInterface $route_match) {
+    $entity = $this->getRequestEntity($route_match, $entity_type_id);
     $build = $this->build($entity_type_id, $request, $route_match);
     $selector_form = new LanguageSelectorForm();
     $language_selection = $this->language_selection ? $this->language_selection : $this->has_translation;
@@ -195,7 +215,10 @@ class TranslationsPackController extends ContentTranslationController {
       ->getForm($selector_form, $language_selection, $this->active_languages);
 
     $build['original']['tabs'] = $build['language_selector']['tabs'];
-    $build['original']['tabs']['#weight'] = -50;
+    $build['original']['tabs']['#weight'] = -1;
+    if ($entity->hasField('moderation_state')) {
+      $this->tabsModerationStates($build['original']['tabs']);
+    }
     unset($build['language_selector']['tabs']);
 
     foreach ($this->languageManager()->getLanguages() as $lang_code => $language) {
@@ -216,7 +239,6 @@ class TranslationsPackController extends ContentTranslationController {
       $build['#attached']['drupalSettings']
         ['translations_pack_switch'] = $this->language_switch;
     }
-    $entity = $this->getRequestEntity($route_match, $entity_type_id);
     $this->moduleHandler()->alter('translations_pack', $build, $entity);
     $themeManager = \Drupal::theme();
     $themeManager->alter('translations_pack', $build, $entity);
@@ -236,6 +258,8 @@ class TranslationsPackController extends ContentTranslationController {
   function saveTranslations(ContentEntityInterface $entity) {
     $type = $entity->getEntityTypeId();
     $entity_storage = $this->entityTypeManager()->getStorage($type);
+    $entity_pack = NULL;
+    $draft_pack = NULL;
     if ($entity->isNew()) {
       $langcode = $this->original_lang->getId();
       $form_states = $this->customFormBuilder->getFormStates();
@@ -245,6 +269,8 @@ class TranslationsPackController extends ContentTranslationController {
         $newid = $form_state->getValue('translations_pack_newid');
         if ($newid) {
           $entity_pack = $entity_storage->load($newid);
+          $entity_pack->setNewRevision(FALSE);
+          $entity_pack->setSyncing(TRUE);
         }
         else {
           $this->getLogger('translations_pack')->error('saved id got lost');
@@ -259,16 +285,21 @@ class TranslationsPackController extends ContentTranslationController {
       }
     }
     else {
-      $entity_pack = clone $entity;
-    }
-
-    // hack to load original moderation_state
-    if ($entity_pack->hasField('moderation_state')) {
-      //$ignore = $entity_pack->moderation_state->value;
+      if ($entity->isDefaultRevision()) {
+        $entity_pack = clone $entity;
+        $entity_pack->setNewRevision(FALSE);
+        $entity_pack->setSyncing(TRUE);
+      }
+      else {
+        $draft_pack = clone $entity;
+        $draft_pack->setNewRevision(FALSE);
+        $draft_pack->setSyncing(TRUE);
+      }
     }
     $skip_fields = $this->getFieldsToSkipFromTranslationChangesCheck($entity);
     $success = true;
     $translation_changes = FALSE;
+    $translation_changes_draft = FALSE;
     foreach ($this->customFormBuilder->getFormStates() as $langcode => $form_pair) {
       if ($langcode == $this->original_lang->getId()) {
         continue;
@@ -290,13 +321,17 @@ class TranslationsPackController extends ContentTranslationController {
           ->addWarning($this->t('@language translation not saved', $args));
           continue;
       }
-      // hack to load moderation_state
-      if ($saved_entity->hasField('moderation_state')) {
-        //$ignore = $saved_entity->moderation_state->value;
+      $state_changed = 
+        $saved_entity->_original_moderation_state != $saved_entity->moderation_state->value;
+      if (!$state_changed && !$saved_entity->hasTranslationChanges()) {
+        continue;
       }
       if ($saved_entity->isDefaultRevision()) {
-        if ($saved_entity->hasTranslationChanges()) {
-          $translation_changes = TRUE;
+        $translation_changes = TRUE;
+        if (!$entity_pack) {
+          $entity_pack = $saved_entity;
+        }
+        else {
           if ($entity_pack->hasTranslation($langcode)) {
             $new_pack = $entity_pack->getTranslation($langcode);
           }
@@ -312,30 +347,34 @@ class TranslationsPackController extends ContentTranslationController {
         }
       }
       else {
-        $state_changed = 
-          $saved_entity->_original_moderation_state != $saved_entity->moderation_state->value;
-        if ($state_changed or $saved_entity->hasTranslationChanges()) {
-          $saved_original = $saved_entity->getTranslation($entity->language()->getId());
-          foreach ($entity as $fieldname => $field_items) {
-            if ($fieldname != 'moderation_state' && in_array($fieldname, $skip_fields, TRUE)) {
-              continue;
-            }
-            $saved_original->set($fieldname, $field_items->getValue());
-            if (!$field_items->getFieldDefinition()->isTranslatable() && $fieldname != 'moderation_state') {
-              $saved_entity->set($fieldname, $field_items->getValue());
+        $translation_changes_draft = TRUE;
+        if (!$draft_pack) {
+          $draft_pack = $saved_entity;
+        }
+        else {
+          if ($draft_pack->hasTranslation($langcode)) {
+            $new_pack = $draft_pack->getTranslation($langcode);
+          }
+          else {
+            $new_pack = $draft_pack->addTranslation($langcode);
+          }
+          foreach ($saved_entity as $fieldname => $field_items) {
+            if ($field_items->getFieldDefinition()->isTranslatable()) {
+              $new_pack->set($fieldname, $field_items->getValue());
             }
           }
-          $saved_entity->save();
+          $draft_pack = $new_pack;
         }
       }
     }
     if ($success) {
-      /*if (!$translation_changes) {
-        $entity_pack->setNewRevision(FALSE);
-        $entity_pack->setSyncing(TRUE);
-      }*/
-      $entity_pack->save();
-      $this->messenger()->addStatus($this->t('translations saved and state'));
+      if ($translation_changes && $entity_pack) {
+        $entity_pack->save();
+      }
+      if ($translation_changes_draft && $draft_pack) {
+        $draft_pack->save();
+      }
+      $this->messenger()->addStatus($this->t('translations saved'));
     }
     $entity = $entity_pack;
     return $success;

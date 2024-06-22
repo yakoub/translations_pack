@@ -57,6 +57,10 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
     $add_route->setRequirement('_access_translations_pack_create', $entity_type_id);
   }
 
+  protected function singleTabPermission() {
+    return FALSE;
+  }
+
   protected function configStatus() {
     $entity_type_id = $this->entity_type->id();
     return PackConfig::typeStatus($entity_type_id);
@@ -81,6 +85,9 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
       $route_single = clone $original_route;
       $add_route = $original_route;
       $route_single->setPath($original_route->getPath() . '/single');
+      if ($perm = $this->singleTabPermission()) {
+        $route_single->setRequirement('_permission', $perm);
+      }
       $collection->add("entity.$entity_type_id.single_add_form", $route_single);
     }
     else {
@@ -129,6 +136,9 @@ class TranslationsPackHandler implements TranslationsPackHandlerInterface, Entit
     if ($config_status == PackConfig::ENABLED) {
       $route_single = clone $collection->get("entity.{$entity_type_id}.edit_form");
       $route_single->setPath($edit_route_path . '/single');
+      if ($perm = $this->singleTabPermission()) {
+        $route_single->setRequirement('_permission', $perm);
+      }
       $collection->remove("entity.{$entity_type_id}.edit_form");
       $collection->add("entity.$entity_type_id.single_edit_form", $route_single);
       $original_defaults = $route_single->getDefaults();

@@ -5,3 +5,4 @@ package: Multilingual
 core_version_requirement: ^10
 dependencies:
   - content_translation
+  - content_moderation
