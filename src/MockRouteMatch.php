@@ -13,16 +13,11 @@ class MockRouteMatch extends NullRouteMatch {
     }
     else {
       $entity_repository = \Drupal::service('entity.repository');
-      $mock_context = new class($language) {
-        public function __construct(protected LanguageInterface $language) {}
-        public function getContextValue() { return $this->language; }
-      };
-      $context_key = '@language.current_language_context:' . LanguageInterface::TYPE_CONTENT; 
-      $context = [$context_key => $mock_context];
+      $context = ['langcode' => $language->getId()];
       $this->entity = $entity_repository
         ->getActive($entity->getEntityTypeId(), $entity->id(), $context);
 
-      if (!$this->entity->hasTranslation($language->getId())) {
+      if (!$this->entity || !$this->entity->hasTranslation($language->getId())) {
         $this->entity = $entity_repository
           ->getCanonical($entity->getEntityTypeId(), $entity->id());
       }
