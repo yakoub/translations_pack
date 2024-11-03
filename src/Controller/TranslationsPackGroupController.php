@@ -44,4 +44,13 @@ class TranslationsPackGroupController extends TranslationsPackController {
     return $this->form;
   }
 
+  protected function entityFormBuilder() {
+    $builder = parent::entityFormBuilder();
+    // from trait
+    if ($this->form_state_additions) {
+      $builder->formStateExtraAdditions($this->form_state_additions);
+    }
+    return $builder;
+  }
+
 }
