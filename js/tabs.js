@@ -198,6 +198,15 @@ Drupal.behaviors.translation_tabs = {
           }
           let next_form = this.context.forms[langcode];
           let form_data = new FormData(next_form);
+
+          if (Drupal.hasOwnProperty('CKEditor5Instances')) {
+            for (let editor of Drupal.CKEditor5Instances.values()) {
+              let key = editor.sourceElement.name;
+              if (form_data.has(key)) {
+                form_data.set(key, editor.getData());
+              }
+            }
+          }
           for (let data_item of form_data.entries()) {
             data.append(data_item[0], data_item[1]);
           }

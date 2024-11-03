@@ -7,4 +7,5 @@ tabs:
       css/tabs.css: {}
   dependencies:
     - core/drupal
+    - core/drupal.ajax
     - core/once
