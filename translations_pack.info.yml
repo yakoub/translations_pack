@@ -2,7 +2,7 @@ name: translations pack
 description: edit all translations in packed form
 type: module
 package: Multilingual
-core_version_requirement: ^10
+core_version_requirement: ^10 || ^11
 dependencies:
   - content_translation
   - content_moderation

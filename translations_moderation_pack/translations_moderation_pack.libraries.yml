@@ -1,3 +1,5 @@
 sync_states:
   js:
     js/sync_states.js: {}
+  dependencies:
+    - translations_pack/tabs

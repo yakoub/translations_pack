@@ -2,7 +2,7 @@ name: translations moderation pack
 description: override entity operation classs
 type: module
 package: Multilingual
-core_version_requirement: ^10
+core_version_requirement: ^10 || ^11
 dependencies:
   - content_moderation
   - translations_pack
