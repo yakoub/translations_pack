@@ -21,6 +21,8 @@ class TranslationsFormBuilder {
 
   protected array $forms = [];
 
+  protected array $form_state_extra_additions = [];
+
   public function __construct(EntityTypeManagerInterface $manager, FormBuilderInterface $builder, ModuleHandlerInterface $handler) {
     $this->entityTypeManager = $manager;
     $this->formBuilder = $builder;
@@ -52,6 +54,9 @@ class TranslationsFormBuilder {
     else {
       $form_state = new FormState();
     }
+    foreach ($this->form_state_extra_additions as $key => $addition) {
+      $form_state_additions[$key] = $addition;
+    }
     $form_state->setFormState($form_state_additions);
     $this->forms[$langcode] = [$form_object, &$form_state];
     $build = $this->formBuilder->buildForm($form_object, $form_state);
@@ -80,4 +85,7 @@ class TranslationsFormBuilder {
     return $this->forms;
   }
 
+  public function formStateExtraAdditions(array $extra) {
+    $this->form_state_extra_additions = $extra;
+  }
 }

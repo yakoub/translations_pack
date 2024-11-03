@@ -16,6 +16,8 @@ trait GroupRelationshipTrait {
    */
   protected $privateTempStoreFactory;
 
+  protected array $form_state_additions = [];
+
   function privateTempStore() {
    if (!isset($this->privateTempStoreFactory)) {
      $this->privateTempStoreFactory = \Drupal::service('tempstore.private');
@@ -102,6 +104,7 @@ trait GroupRelationshipTrait {
     }
 
     // only addition to original group code
+    $this->form_state_additions = $extra;
     $this->entity = $entity;
     // Return the entity form with the configuration gathered above.
     return $this->entityFormBuilder()->getForm($entity, $operation, $extra);
