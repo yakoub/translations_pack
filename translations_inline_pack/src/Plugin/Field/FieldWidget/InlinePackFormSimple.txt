@@ -1,0 +1,53 @@
+<?php
+
+namespace Drupal\translations_inline_pack\Plugin\Field\FieldWidget;
+
+use Drupal\inline_entity_form\Plugin\Field\FieldWidget\InlineEntityFormSimple;
+use Drupal\translations_inline_pack\Element\InlinePackForm;
+
+use Drupal\Core\Render\Element;
+use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+
+/**
+ * Complex inline widget.
+ *
+ * @FieldWidget(
+ *   id = "inline_pack_form_simple",
+ *   label = @Translation("Inline pack form - Simple"),
+ *   field_types = {
+ *     "entity_reference",
+ *     "entity_reference_revisions",
+ *   },
+ *   multiple_values = false
+ * )
+ */
+class InlinePackFormSimple extends InlineEntityFormSimple {
+
+  // enforce new entity when translatable
+  public function form(FieldItemListInterface $items, array &$form, FormStateInterface $form_state, $get_delta = NULL) {
+    if ($this->fieldDefinition->getFieldStorageDefinition()->isTranslatable()) {
+      if (
+        $items->getEntity()->isNewTranslation() &&
+        !$items->getEntity()->isDefaultTranslation()) 
+      {
+        if (!$items->isEmpty()) {
+          $items->removeItem(0);
+        }
+      }
+    }
+    return parent::form($items, $form, $form_state);
+  }
+
+   /**
+    * create bundles differ from target bundles only in case
+    * same field includes bundles with different permissions
+    * given our project use cases we can ignore this check
+    * for this widget specifically to save development time
+    */
+   protected function getCreateBundles() {
+    return $this->getTargetBundles();
+   }
+}
