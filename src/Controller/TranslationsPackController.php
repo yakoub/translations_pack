@@ -156,6 +156,7 @@ class TranslationsPackController extends ContentTranslationController {
             $this->edit($language, $route_match, $entity->getEntityTypeId());
         }
         else {
+          //TODO : simply use property activeLangcode
           $route_match->entity->pack_language_code = $language->getId();
           $translation_form =
             $this->add($this->source_lang, $language, $route_match, $entity->getEntityTypeId());
@@ -175,7 +176,11 @@ class TranslationsPackController extends ContentTranslationController {
       $this->active_languages[$lang_code] = $language; 
     }
     
-    if ($request->isMethod('POST') && !$is_ajax) {
+    if (
+      $request->isMethod('POST') && 
+      $request->request->has('translations_pack_active_id') &&
+      !$is_ajax) 
+    {
       $success = $this->saveTranslations($entity);
       if ($success and $response_exception) {
         throw $response_exception; 
@@ -653,7 +658,7 @@ class TranslationsPackController extends ContentTranslationController {
     // Update the translation author to current user, as well the translation
     // creation time.
     $metadata->setAuthor($user);
-    $metadata->setCreatedTime(REQUEST_TIME);
+    $metadata->setCreatedTime(\Drupal::time()->getRequestTime());
     $metadata->setSource($source_langcode);
   }
 
